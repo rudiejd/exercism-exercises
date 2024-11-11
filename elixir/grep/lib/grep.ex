@@ -1,29 +1,21 @@
 defmodule Grep do
 
-  @spec grep(String.t(), [String.t()], [String.t()]) :: String.t()
-  defp search(file, pattern, flags, multi) do 
+  @spec grep(String.t(), [String.t()], Keyword.t()) :: String.t()
+  defp search(file, pattern, opts, multi) do 
     {:ok, contents} = File.read(file)
-
-
-
-    numbers = Enum.any?(flags, fn f -> f == "-n" end)
-    names = Enum.any?(flags, fn f -> f == "-l" end)
-    insensitive = Enum.any?(flags, fn f -> f == "-i" end)
-    invert = Enum.any?(flags, fn f -> f == "-v" end)
-    match_entire_line = Enum.any?(flags, fn f -> f == "-x" end)
 
     lines = String.split(contents, "\n")
     matches = for n <- 0..length(lines)-1  do
       cur = Enum.at(lines, n)
       is_match = cond do
-       insensitive  -> String.contains?(String.downcase(cur), String.downcase(pattern))
-       invert and match_entire_line -> cur != pattern
-       match_entire_line -> cur == pattern
-       invert -> not String.contains?(cur, pattern)
+       opts[:insensitive]  -> String.contains?(String.downcase(cur), String.downcase(pattern))
+       opts[:invert] and opts[:match_entire_line] -> cur != pattern
+       opts[:match_entire_line] -> cur == pattern
+       opts[:invert] -> not String.contains?(cur, pattern)
        true -> String.contains?(cur, pattern)      end
       if is_match and String.length(String.trim(cur)) != 0 do 
-        if not names do
-          "#{if multi, do: "#{file}:", else: ""}#{if numbers, do: "#{n + 1}:", else: "" }#{cur}"
+        if not opts[:names] do
+          "#{if multi, do: "#{file}:", else: ""}#{if opts[:numbers], do: "#{n + 1}:", else: "" }#{cur}"
         else
           file
         end
@@ -31,13 +23,15 @@ defmodule Grep do
     end
     matches |>
     Enum.filter(fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) |>
-    (&(if names, do: Enum.take(&1, 1), else: &1)).() |>
+    (&(if opts[:names], do: Enum.take(&1, 1), else: &1)).() |>
     Enum.join("\n")
   end
 
   @spec grep(String.t(), [String.t()], [String.t()]) :: String.t()
   def grep(pattern, flags, files) do
-    res = for file <- files, do: search(file, pattern, flags, length(files) > 1) 
+    opts = [numbers: "-n" in flags, names: "-l" in flags, 
+      insensitive: "-i" in flags, invert: "-v" in flags, match_entire_line: "-x" in flags]
+    res = for file <- files, do: search(file, pattern, opts, length(files) > 1) 
     filtered = Enum.filter(res, fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) 
     # IO.inspect(filtered)
     case length(filtered) do
