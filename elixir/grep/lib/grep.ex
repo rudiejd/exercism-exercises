@@ -43,7 +43,7 @@ defmodule Grep do
     case length(filtered) do
       0 -> ""
       1 -> hd(filtered) <> "\n"
-      _ -> Enum.join(filtered, "\n") |>
+      _ -> Enum.join(filtered, "\n")
     end
   end
 end
