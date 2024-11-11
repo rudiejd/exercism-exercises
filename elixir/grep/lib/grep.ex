@@ -1,5 +1,4 @@
 defmodule Grep do
-
   @spec grep(String.t(), [String.t()], Keyword.t()) :: String.t()
   defp search(file, pattern, opts, multi) do 
     {:ok, contents} = File.read(file)
@@ -24,7 +23,8 @@ defmodule Grep do
     matches |>
     Enum.filter(fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) |>
     (&(if opts[:names], do: Enum.take(&1, 1), else: &1)).() |>
-    Enum.join("\n")
+    Enum.join("\n") |>
+    dbg
   end
 
   @spec grep(String.t(), [String.t()], [String.t()]) :: String.t()
