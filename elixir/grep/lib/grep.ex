@@ -20,9 +20,8 @@ defmodule Grep do
        invert and match_entire_line -> cur != pattern
        match_entire_line -> cur == pattern
        invert -> not String.contains?(cur, pattern)
-       true -> String.contains?(cur, pattern)
-      end
-      if is_match do 
+       true -> String.contains?(cur, pattern)      end
+      if is_match and String.length(String.trim(cur)) != 0 do 
         if not names do
           "#{if multi, do: "#{file}:", else: ""}#{if numbers, do: "#{n + 1}:", else: "" }#{cur}"
         else
@@ -32,18 +31,19 @@ defmodule Grep do
     end
     matches |>
     Enum.filter(fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) |>
+    (&(if names, do: Enum.take(&1, 1), else: &1)).() |>
     Enum.join("\n")
   end
 
   @spec grep(String.t(), [String.t()], [String.t()]) :: String.t()
   def grep(pattern, flags, files) do
     res = for file <- files, do: search(file, pattern, flags, length(files) > 1) 
-    filtered = Enum.filter(res, fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) |> Enum.dedup()
-    IO.inspect(filtered)
+    filtered = Enum.filter(res, fn s -> not is_nil(s) and String.length(String.trim(s)) > 0 end) 
+    # IO.inspect(filtered)
     case length(filtered) do
       0 -> ""
       1 -> hd(filtered) <> "\n"
-      _ -> Enum.join(filtered, "\n")
+      _ -> Enum.join(Enum.dedup(filtered), "\n") <> "\n"
     end
   end
 end
