@@ -30,7 +30,7 @@ defmodule CaptainsLogTest do
 
   describe "random_ship_registry_number" do
     @tag task_id: 2
-    test "start with \"NCC-\"" do
+    test "start with NCC-" do
       assert String.starts_with?(CaptainsLog.random_ship_registry_number(), "NCC-")
     end
 
