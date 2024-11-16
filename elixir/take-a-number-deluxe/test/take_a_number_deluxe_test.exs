@@ -55,6 +55,7 @@ defmodule TakeANumberDeluxeTest do
     test "returns the state of the current process" do
       {:ok, pid} = TakeANumberDeluxe.start_link(min_number: 4, max_number: 55)
       {:ok, expected_state} = TakeANumberDeluxe.State.new(4, 55)
+      dbg()
       assert TakeANumberDeluxe.report_state(pid) == expected_state
     end
 
